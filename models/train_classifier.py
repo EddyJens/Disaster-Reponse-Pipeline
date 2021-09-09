@@ -2,22 +2,25 @@ import sys
 import nltk
 import numpy as np
 nltk.download(['punkt', 'wordnet'])
-from nltk.tokenize import word_tokenize, RegexpTokenizer
-from nltk.stem import WordNetLemmatizer
-import pandas as pd
-from sqlalchemy import create_engine
-import re
-from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.multioutput import MultiOutputClassifier
+import pandas as pd
+
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeClassifier
+from nltk.tokenize import word_tokenize, RegexpTokenizer
+from nltk.stem import WordNetLemmatizer
+from sqlalchemy import create_engine
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+import re
+from sklearn.pipeline import Pipeline
+from sklearn.multioutput import MultiOutputClassifier
+
 import pickle
 
 def load_data(database_filepath):
-    """Load the filepath and return the data"""
+    """Load the filepath and return data split in X (train variables), y (answers) and category_names (all possible output classes)"""
     name = 'sqlite:///' + database_filepath
     engine = create_engine(name)
     df = pd.read_sql_table('Disasters', con=engine)
@@ -28,7 +31,7 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    """tokenize and transform input text. Return clean text"""
+    """tokenize and transform input text. Return clean text (urls removed)"""
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -46,13 +49,12 @@ def tokenize(text):
 
 
 def build_model():
-    """Return Grid Search model with pipeline and Classifier"""
-    moc = MultiOutputClassifier(RandomForestClassifier())
+    """Return Grid Search model with pipeline"""
 
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', moc)
+        ('clf', MultiOutputClassifier(RandomForestClassifier()))
         ])
 
     parameters = {'clf__estimator__max_depth': [10, 50, None],
@@ -65,21 +67,26 @@ def build_model():
 def evaluate_model(model, X_test, Y_test, category_names):
     """Print model results
     INPUT
-    model -- required, estimator-object
-    X_test -- required
-    y_test -- required
-    category_names = required, list of category strings
+    model: model obtained during training
+    X_test: dataset group with the variables that will be evaluated
+    y_test: dataset group with the answers to the variables evaluated
+    category_names: list of possible output categories 
     OUTPUT
     None
     """
-    # Get results and add them to a dataframe.
+
     y_pred = model.predict(X_test)
-    results = pd.DataFrame(columns=['Category', 'f_score', 'precision', 'recall'])
+    print('results obtained: ')
+    print(y_pred)    
 
 
 
 def save_model(model, model_filepath):
-    """Save model as pickle file"""
+    """
+    INPUT
+    model: with the model generated during training
+    model_filepath: file path to save the model 
+    """
     pickle.dump(model, open(model_filepath, 'wb'))
 
 

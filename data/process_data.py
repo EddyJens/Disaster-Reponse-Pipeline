@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 def load_data(messages_filepath, categories_filepath):
     """
     INPUT
-    messages_filepath -- str, link to file
-    categories_filepath -- str, link to file
+    messages_filepath: path to the messages database
+    categories_filepath: path to the categories database
     OUTPUT
     df - pandas DataFrame with merged input data
     """
@@ -18,9 +18,9 @@ def load_data(messages_filepath, categories_filepath):
 def clean_data(df):
     """Clean data included in the DataFrame and transform categories part
     INPUT
-    df -- type pandas DataFrame
+    df: data to be cleaned
     OUTPUT
-    df -- cleaned pandas DataFrame
+    df: data cleaned
     """
     categories = df['categories'].str.split(pat=';', expand=True)
     row = categories.loc[0]
@@ -35,12 +35,11 @@ def clean_data(df):
     df.drop('categories', axis=1, inplace=True)
     df = pd.concat([df, categories], axis=1)
     df.drop_duplicates(inplace=True)
-    # Removing entry that is non-binary
     df = df[df['related'] != 2]
     return df
 
 def save_data(df, database_filename):
-    """Saves DataFrame (df) to database path"""
+    """Saves DataFrame cleaned to database path"""
     name = 'sqlite:///' + database_filename
     engine = create_engine(name)
     df.to_sql('Disasters', engine, index=False)  
