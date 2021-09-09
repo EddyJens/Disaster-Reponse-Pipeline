@@ -20,8 +20,7 @@ def load_data(database_filepath):
     """Load the filepath and return the data"""
     name = 'sqlite:///' + database_filepath
     engine = create_engine(name)
-    df = pd.read_sql_table('Disasters', con=engine) # is table always called this? 
-    print(df.head())
+    df = pd.read_sql_table('Disasters', con=engine)
     X = df['message']
     y = df[df.columns[4:]]
     category_names = y.columns
@@ -29,17 +28,15 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    """tokenize and transform input text. Return cleaned text"""
+    """tokenize and transform input text. Return clean text"""
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
         text = text.replace(url, "urlplaceholder")
     
-    # take out all punctuation while tokenizing
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(text)
     
-    # lemmatize as shown in the lesson
     lemmatizer = WordNetLemmatizer()
     clean_tokens = []
     for tok in tokens:
@@ -77,7 +74,6 @@ def evaluate_model(model, X_test, Y_test, category_names):
     """
     # Get results and add them to a dataframe.
     y_pred = model.predict(X_test)
-    print(classification_report(Y_test, y_pred, target_names=category_names))
     results = pd.DataFrame(columns=['Category', 'f_score', 'precision', 'recall'])
 
 

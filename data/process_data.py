@@ -3,12 +3,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
-    """Load dataframe from filepaths
+    """
     INPUT
     messages_filepath -- str, link to file
     categories_filepath -- str, link to file
     OUTPUT
-    df - pandas DataFrame
+    df - pandas DataFrame with merged input data
     """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
@@ -28,7 +28,6 @@ def clean_data(df):
     for entry in row:
         colnames.append(entry[:-2])
     category_colnames = colnames
-    print('Column names:', category_colnames)
     categories.columns = category_colnames
     for column in categories:
         categories[column] = categories[column].str[-1:]
@@ -38,7 +37,6 @@ def clean_data(df):
     df.drop_duplicates(inplace=True)
     # Removing entry that is non-binary
     df = df[df['related'] != 2]
-    print('Duplicates remaining:', df.duplicated().sum())
     return df
 
 def save_data(df, database_filename):
